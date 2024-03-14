@@ -87,5 +87,6 @@ dependencies {
     androidTestImplementation "io.mockk:mockk-agent:1.13.9"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
+    testImplementation 'app.cash.turbine:turbine:0.7.0'
     androidTestImplementation 'app.cash.turbine:turbine:0.7.0'
 }
