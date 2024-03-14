@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Baubuddy</string>
+    <string name="baubuddy">Baubuddy</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="user">365</string>
+    <string name="pass">1</string>
 </resources>
