@@ -9,12 +9,12 @@ import com.ljmarinscull.baubuddy.data.datasource.remote.RemoteDataSourceError
 import com.ljmarinscull.baubuddy.domain.models.Resource
 import com.ljmarinscull.baubuddy.domain.repository.IHomeRepository
 import com.ljmarinscull.baubuddy.domain.repository.IRepository
-import com.ljmarinscull.baubuddy.domain.repository.Repository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -109,7 +109,15 @@ class HomeViewModel(
         refreshing()
         requestItems()
     }
-
+    fun filterByQuery(text: String) {
+        queryJob?.cancel()
+        queryJob = viewModelScope.launch {
+            delay(1000L)
+            _state.update { it.copy(
+                query = text.ifEmpty { null }
+            )}
+        }
+    }
     fun setQuery(text: String) {
         _state.update {
             it.copy(
@@ -117,7 +125,6 @@ class HomeViewModel(
             )
         }
     }
-
     private fun refreshing(isRefreshing: Boolean = true) {
         _state.update {
             it.copy(
@@ -125,6 +132,13 @@ class HomeViewModel(
             )
         }
         FilterType.AVAILABLE.pattern
+    }
+    fun updateValidAuthorization(value: Boolean) {
+        _state.update {
+            it.copy(
+                validAuthorization = value
+            )
+        }
     }
 }
 
