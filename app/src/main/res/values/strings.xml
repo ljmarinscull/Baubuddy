@@ -6,4 +6,7 @@
     <string name="login">Login</string>
     <string name="user">365</string>
     <string name="pass">1</string>
+    <string name="task">Task</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
 </resources>
