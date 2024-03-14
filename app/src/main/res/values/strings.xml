@@ -9,4 +9,6 @@
     <string name="task">Task</string>
     <string name="title">Title</string>
     <string name="description">Description</string>
+    <string name="scan">Qr Scan</string>
+    <string name="search">Search</string>
 </resources>
