@@ -95,4 +95,6 @@ dependencies {
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
     androidTestImplementation 'app.cash.turbine:turbine:0.7.0'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:3.0-alpha-1'
+
 }
