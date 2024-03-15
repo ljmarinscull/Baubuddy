@@ -1,4 +1,4 @@
-package com.ljmarinscull.baubuddy
+package com.ljmarinscull.baubuddy.data.datasource.local
 
 import android.content.Context
 import androidx.room.Database
@@ -17,7 +17,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "database"
-
         @Volatile private var instance: AppDatabase? = null
 
         fun getInstance(context: Context): AppDatabase {

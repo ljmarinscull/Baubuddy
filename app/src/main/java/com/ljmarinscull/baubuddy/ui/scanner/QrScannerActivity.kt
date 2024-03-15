@@ -10,8 +10,8 @@ import com.budiyev.android.codescanner.CodeScannerView
 import com.budiyev.android.codescanner.DecodeCallback
 import com.budiyev.android.codescanner.ErrorCallback
 import com.budiyev.android.codescanner.ScanMode
-import com.ljmarinscull.baubuddy.MainActivity
 import com.ljmarinscull.baubuddy.R
+import com.ljmarinscull.baubuddy.ui.MainActivity
 
 const val RESULT = "result"
 

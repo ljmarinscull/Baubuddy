@@ -24,7 +24,7 @@ interface IPreferencesRepository{
 
 class PreferencesRepository(private val dataStore: DataStore<Preferences>) : IPreferencesRepository {
 
-    private val TAG: String = "UserPreferencesRepo"
+    private val TAG: String = "PreferencesRepository"
 
     private object PreferencesKeys {
         val AUTHORIZATION = stringPreferencesKey("authorization")

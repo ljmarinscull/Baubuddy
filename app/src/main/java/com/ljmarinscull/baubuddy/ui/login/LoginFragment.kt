@@ -15,7 +15,6 @@ import com.ljmarinscull.baubuddy.util.visible
 
 class LoginFragment : Fragment() {
 
-
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private val viewModel by activityViewModels<LoginViewModel>()
@@ -45,30 +44,32 @@ class LoginFragment : Fragment() {
 
     private fun setupUI() = with(binding) {
         button.setOnClickListener {
-            viewModel.onEvent(
-                LoginEvent.Login(
-                    usernameField.text.toString().trim(),
-                    passwordField.text.toString().trim()
-                )
-            )
+            val username = usernameField.text.toString()
+            val password = passwordField.text.toString()
+            login(username, password)
         }
     }
 
-    private fun observers() {
-        collectLatestLifecycleFlow(viewModel.state){ state ->
-            handleLoading(state.isLoading)
-        }
-
-        collectLatestLifecycleFlow(viewModel.userLoggedState){ appPreferences ->
-            if (appPreferences.authorization.isNotEmpty()){
+    private fun login(username: String, password: String) {
+        viewModel.login(username, password).observe(viewLifecycleOwner) { result ->
+            if (result){
                 savedStateHandle[LOGIN_SUCCESSFUL] = true
                 findNavController().popBackStack()
             }
+        }
+    }
+    private fun observers() {
+        collectLatestLifecycleFlow(viewModel.state){ state ->
+            handleUIState(state)
         }
 
         collectLatestLifecycleFlow(viewModel.errorFlow){ error->
             handleError(error)
         }
+    }
+    private fun handleUIState(state: LoginState) = with(binding) {
+        button.isEnabled = state.loginButtonEnable
+        loading.visible = state.isLoading
     }
 
     private fun handleError(error: String?) {
@@ -76,11 +77,6 @@ class LoginFragment : Fragment() {
             Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
         }
     }
-
-    private fun handleLoading(isLoading: Boolean) = with(binding) {
-        loading.visible = isLoading
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

@@ -11,7 +11,7 @@ class ApiServiceFake: ApiService {
 
     var errorToReturn: Exception? = null
 
-    val resources = listOf(
+    private val resources = listOf(
         RemoteResourceJO(
             task = "Task 1",
             title = "Title 1",

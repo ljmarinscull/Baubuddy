@@ -3,6 +3,8 @@ package com.ljmarinscull.baubuddy.data.models
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import com.ljmarinscull.baubuddy.domain.models.Resource
+import com.ljmarinscull.baubuddy.util.EMPTY_STRING_PLACEHOLDER
+import com.ljmarinscull.baubuddy.util.WHITE_COLOR_HEX
 
 @Entity(
     tableName = "resources",
@@ -22,8 +24,6 @@ data class ResourceEntity(
     @ColumnInfo(name = "workingTime") val workingTime: String?,
     @ColumnInfo(name = "isAvailableInTimeTrackingKioskMode") val isAvailableInTimeTrackingKioskMode: Boolean
 )
-const val EMPTY_STRING_PLACEHOLDER = "---"
-const val WHITE_COLOR_HEX = "#FFFFFF"
 
 fun ResourceEntity.toResource() = Resource(
     task = task,
