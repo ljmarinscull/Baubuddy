@@ -1,7 +1,9 @@
 package com.ljmarinscull.baubuddy.ui.home
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -13,12 +15,12 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -27,6 +29,7 @@ import com.ljmarinscull.baubuddy.R
 import com.ljmarinscull.baubuddy.databinding.FragmentHomeBinding
 import com.ljmarinscull.baubuddy.domain.models.Resource
 import com.ljmarinscull.baubuddy.ui.login.LoginFragment
+import com.ljmarinscull.baubuddy.ui.login.LoginViewModel
 import com.ljmarinscull.baubuddy.ui.scanner.QrScannerActivity
 import com.ljmarinscull.baubuddy.ui.scanner.RESULT
 import com.ljmarinscull.baubuddy.util.afterTextChanged
@@ -40,7 +43,8 @@ class HomeFragment : Fragment() {
     private lateinit var _adapter: RemoteResourceAdapter
 
     private val viewModel: HomeViewModel by activityViewModels<HomeViewModel>()
-    private lateinit var savedStateHandle: SavedStateHandle
+    private val loginViewModel: LoginViewModel by activityViewModels<LoginViewModel>()
+
     private var searchView: SearchView? = null
 
     private val launcher = registerForActivityResult(
@@ -55,13 +59,23 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                launchQrScanner()
+            } else {
+                Toast.makeText(requireContext(),"The app needs this permission to lauch the Qr scanner.", Toast.LENGTH_LONG).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val navController = findNavController()
 
         val currentBackStackEntry = navController.currentBackStackEntry!!
-        savedStateHandle = currentBackStackEntry.savedStateHandle
+        val savedStateHandle = currentBackStackEntry.savedStateHandle
         savedStateHandle.getLiveData<Boolean>(LoginFragment.LOGIN_SUCCESSFUL)
             .observe(currentBackStackEntry){ success->
                 if (!success){
@@ -87,41 +101,43 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val loginResult : Boolean? = savedStateHandle[LoginFragment.LOGIN_SUCCESSFUL]
-        if (loginResult != null && loginResult) {
-            viewModel.updateValidAuthorization(loginResult)
-            setupMenu()
-            initSwipeRefreshLayout()
-            initRecyclerView()
-            observers()
-        } else {
-            findNavController().navigate(R.id.navigation_login)
+        loginViewModel.userLogged.observe(viewLifecycleOwner) { preferences ->
+            if (preferences.authorization.isNotEmpty()) {
+                viewModel.updateValidAuthorization(true)
+                setupMenu()
+                initSwipeRefreshLayout()
+                initRecyclerView()
+                observers()
+            } else {
+                findNavController().navigate(R.id.navigation_login)
+            }
         }
     }
-
     private fun setupMenu() {
-        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.app_menu, menu)
+                if(!menu.hasVisibleItems()) {
+                    menuInflater.inflate(R.menu.app_menu, menu)
+
                 val menuItem = menu.findItem(R.id.action_search)
                 searchView = menuItem.actionView as SearchView?
                 searchView?.queryHint = getString(R.string.search_hint)
                 viewModel.state.value.query?.let { query ->
-                    updateSearchView(query, false)
+                    updateSearchView(query)
                 }
                 searchView?.afterTextChanged {
                     viewModel.filterByQuery(it)
-                }
+                }}
             }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
                 when (menuItem.itemId) {
                     R.id.action_qr -> {
-                        launchQrScanner()
-                        return true
+                        onQrMenuItemTap()
+                        true
                     }
-                }
-                return false
+                    else -> true
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
@@ -173,12 +189,24 @@ class HomeFragment : Fragment() {
         viewModel.setQuery(query)
     }
 
-    private fun updateSearchView(query: String, submit: Boolean){
-        searchView?.isIconified = false
+    private fun updateSearchView(query: String, submit: Boolean = false){
+        searchView?.isIconified = submit
         searchView?.setQuery(query, submit)
     }
 
-    private fun launchQrScanner() {
+    private fun onQrMenuItemTap() {
+        val hasPermission = ActivityCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        if(hasPermission){
+            launchQrScanner()
+        } else {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchQrScanner(){
         val intent = Intent(requireContext(), QrScannerActivity::class.java)
         launcher.launch(intent)
     }
