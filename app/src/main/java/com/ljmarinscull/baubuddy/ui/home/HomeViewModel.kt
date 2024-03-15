@@ -9,6 +9,7 @@ import com.ljmarinscull.baubuddy.data.datasource.remote.RemoteDataSourceError
 import com.ljmarinscull.baubuddy.domain.models.Resource
 import com.ljmarinscull.baubuddy.domain.repository.IHomeRepository
 import com.ljmarinscull.baubuddy.domain.repository.IRepository
+import com.ljmarinscull.baubuddy.ui.home.FilterType.Companion.SEPARATOR
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,7 +18,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,6 +52,17 @@ class HomeViewModel(
     private var requestItemsJob: Job? = null
     private var queryJob: Job? = null
 
+    init {
+        state.combine(resources){ state, resources ->
+            if (state.resources != resources){
+                _state.update {
+                    it.copy(
+                        resources = resources
+                    )
+                }
+            } else state
+        }.launchIn(viewModelScope)
+    }
     private fun requestItems() {
         requestItemsJob?.cancel()
         requestItemsJob = viewModelScope.launch(dispatcher) {
@@ -74,35 +88,26 @@ class HomeViewModel(
         }
     }
 
-    private fun handleQuery(query: String?): CompoundQuery {
+    private fun handleQuery(query: String?): FilterType {
         if (query.isNullOrEmpty())
-            return CompoundQuery()
+            return FilterType.Query()
 
-        if (FilterType.filterFrom(query) == FilterType.AVAILABLE)
-            return CompoundQuery().copy(
-                filterType = FilterType.AVAILABLE
-            )
+        val filterType = FilterType.filterAvailabilityFrom(query)
+        if (filterType != null)
+            return filterType
 
-        if (FilterType.filterFrom(query) == FilterType.NOT_AVAILABLE)
-            return CompoundQuery().copy(
-                filterType = FilterType.NOT_AVAILABLE
-            )
-
-        if (query.contains(CompoundQuery.SEPARATOR)) {
-            val splitQuery = query.split(CompoundQuery.SEPARATOR, limit = 2)
+        if (query.contains(SEPARATOR)) {
+            val splitQuery = query.split(SEPARATOR, limit = 2)
             if (splitQuery.size == 2) {
-                val type = FilterType.filterFrom(splitQuery[1])
-                return CompoundQuery(
-                    text = splitQuery[0],
-                    filterType = type
-                )
+                val type = FilterType.filterAvailabilityFrom(splitQuery[1])
+                if(type != null)
+                    return FilterType.CompoundQuery(splitQuery[0], type.isAvailable)
+                else
+                    FilterType.Query(splitQuery[0])
             }
         }
 
-        return CompoundQuery(
-            query,
-            FilterType.SIMPLE
-        )
+        return FilterType.Query(query)
     }
 
     fun onRefresh() {
@@ -131,7 +136,6 @@ class HomeViewModel(
                 isRefreshing = isRefreshing
             )
         }
-        FilterType.AVAILABLE.pattern
     }
     fun updateValidAuthorization(value: Boolean) {
         _state.update {
@@ -144,7 +148,7 @@ class HomeViewModel(
 
 class HomeViewModelFactory(
     private val repository: IRepository,
-    private val preferencesRepository: IPreferencesRepository
+    private val preferencesRepository: IPreferencesRepository,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

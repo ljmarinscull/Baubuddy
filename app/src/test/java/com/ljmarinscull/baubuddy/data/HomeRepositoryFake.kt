@@ -4,7 +4,7 @@ package com.ljmarinscull.baubuddy.data
 import com.ljmarinscull.baubuddy.data.datasource.remote.RemoteDataSourceError
 import com.ljmarinscull.baubuddy.domain.models.Resource
 import com.ljmarinscull.baubuddy.domain.repository.IHomeRepository
-import com.ljmarinscull.baubuddy.ui.home.CompoundQuery
+import com.ljmarinscull.baubuddy.ui.home.FilterType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -18,7 +18,7 @@ class HomeRepositoryFake: IHomeRepository {
         } else Result.success(Unit)
 
 
-    override fun loadResources(query: CompoundQuery): Flow<List<Resource>> = flow {
+    override fun loadResources(filterType: FilterType): Flow<List<Resource>> = flow {
         listOf(
             Resource(
             task = "Task 1",

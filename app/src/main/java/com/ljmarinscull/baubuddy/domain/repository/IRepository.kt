@@ -1,7 +1,7 @@
 package com.ljmarinscull.baubuddy.domain.repository
 
 import com.ljmarinscull.baubuddy.domain.models.Resource
-import com.ljmarinscull.baubuddy.ui.home.CompoundQuery
+import com.ljmarinscull.baubuddy.ui.home.FilterType
 import kotlinx.coroutines.flow.Flow
 
 fun interface ILoginRepository{
@@ -9,6 +9,6 @@ fun interface ILoginRepository{
 }
 interface IHomeRepository{
     suspend fun requestResources(authorization: String): Result<Unit>
-    fun loadResources(query: CompoundQuery): Flow<List<Resource>>
+    fun loadResources(filterType: FilterType): Flow<List<Resource>>
 }
 interface IRepository: ILoginRepository,IHomeRepository

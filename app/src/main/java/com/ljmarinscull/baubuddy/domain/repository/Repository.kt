@@ -4,7 +4,6 @@ import com.ljmarinscull.baubuddy.data.datasource.local.ILocalDataSource
 import com.ljmarinscull.baubuddy.data.datasource.remote.IRemoteDataSource
 import com.ljmarinscull.baubuddy.data.models.toResource
 import com.ljmarinscull.baubuddy.data.models.toResourceEntity
-import com.ljmarinscull.baubuddy.ui.home.CompoundQuery
 import com.ljmarinscull.baubuddy.ui.home.FilterType
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -23,19 +22,27 @@ class Repository(
         )
     }
 
-    override fun loadResources(query: CompoundQuery) = when(query.filterType){
-        FilterType.AVAILABLE, FilterType.NOT_AVAILABLE -> {
+    override fun loadResources(filterType: FilterType) = when(filterType){
+        is FilterType.CompoundQuery -> {
             localDataSource
-                .getAll(query.text, query.filterType.value()!!)
+                .getAll(filterType.query, filterType.isAvailable)
                 .mapNotNull { list ->
                     list.map { entity ->
                         entity.toResource()
                     }
                 }
         }
-        else -> {
+        is FilterType.Availability -> {
             localDataSource
-                .getAll(query.text)
+                .getAll(filterType.isAvailable)
+                .mapNotNull { list ->
+                    list.map { entity ->
+                        entity.toResource()
+                    }
+                }
+        } is FilterType.Query ->{
+            localDataSource
+                .getAll(filterType.query)
                 .mapNotNull { list ->
                     list.map { entity ->
                         entity.toResource()
