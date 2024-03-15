@@ -7,10 +7,10 @@
         android:title="@string/search"
         android:iconifiedByDefault="true"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_qr"
         android:icon="@drawable/qr_code_scanner_24"
         android:title="@string/scan"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 </menu>

@@ -13,6 +13,6 @@
     <string name="search">Search</string>
     <string name="title_home">Home</string>
     <string name="title_login">Login</string>
-    <string name="search_hint">Search e.g. \\\'query+able=true\\\'\n</string>
+    <string name="search_hint">Search e.g. "'query+able=true'"</string>
     <string name="color_code_label">Color Code: %1$s</string>
 </resources>
